@@ -1,40 +1,43 @@
 package com.example.diceroller
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.diceroller.databinding.ActivityMainBinding
+import java.text.NumberFormat
 
-/**
- * This activity allows the user to roll a dice and view the result
- * on the screen.
- */
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        val rollButton: Button = findViewById(R.id.button)
-        rollButton.setOnClickListener {
-            rollDice()
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        binding.calculateButton.setOnClickListener { calculateTip() }
+    }
+
+    private fun calculateTip() {
+        val stringInTextField = binding.costOfService.text.toString()
+        val cost = stringInTextField.toDoubleOrNull()
+        if (cost == null) {
+            binding.tipResult.text = ""
+            return
         }
-    }
-    /**
-     * Roll the dice and update the screen with the result.
-     */
-    private fun rollDice() {
-        // Create new Dice object with 6 sides and roll it
-        val dice = Dice(6)
-        val diceRoll = dice.roll()
-        // Update the screen with the dice roll
-        val resultTextView: TextView = findViewById(R.id.textView)
-        resultTextView.text = diceRoll.toString()
-    }
-}
 
-class Dice(val numSides: Int) {
+        val tipPercentage = when (binding.tipOptions.checkedRadioButtonId) {
+            R.id.option_twenty_percent -> 0.20
+            R.id.option_eighteen_percent -> 0.18
+            else -> 0.15
+        }
 
-    fun roll(): Int {
-        return (1..numSides).random()
+        var tip = tipPercentage * cost
+        if (binding.roundUpSwitch.isChecked) {
+            tip = kotlin.math.ceil(tip)
+        }
+
+        val formattedTip = NumberFormat.getCurrencyInstance().format(tip)
+        binding.tipResult.text = getString(R.string.tip_amount, formattedTip)
     }
 }
